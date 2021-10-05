@@ -37,8 +37,8 @@ func TransferToGpu(index Index) (Index, error) {
 }
 
 func TransferToAllGPUs(index Index, gpuIndexes []int) (Index, error) {
-	const amountOfGPUs int = 1
-	var gpuResources [amountOfGPUs]*C.FaissStandardGpuResources
+	amountOfGPUs := len(gpuIndexes)
+	gpuResources := make([]*C.FaissStandardGpuResources, len(gpuIndexes))
 	for i := 0; i < len(gpuIndexes); i++ {
 		var resourceIndex *C.FaissStandardGpuResources
 		gpuResources[i] = resourceIndex
@@ -52,18 +52,10 @@ func TransferToAllGPUs(index Index, gpuIndexes []int) (Index, error) {
 		}
 	}
 
-	var gpuIndexesAsConst [amountOfGPUs]int
-	for i, value := range gpuIndexes {
-		//const val int  = value
-		gpuIndexesAsConst[i] = value
-	}
-	// todo : handle c.size_t
-	//exitCode := C.faiss_index_cpu_to_gpu_multiple((**C.FaissStandardGpuResources)(unsafe.Pointer(&gpuResourcesAsConst[0])), (*C.int)(unsafe.Pointer(&gpuIndexesAsConst[0])),
-	//	C.size_t , index.cPtr(), &gpuIndex)
 	exitCode := C.faiss_index_cpu_to_gpu_multiple(
 		(**C.FaissStandardGpuResources)(unsafe.Pointer(&gpuResources[0])),
-		(*C.int)(unsafe.Pointer(&gpuIndexesAsConst[0])),
-		C.size_t(1),
+		(*C.int)(unsafe.Pointer(&gpuIndexes[0])),
+		C.size_t(len(gpuIndexes)),
 		index.cPtr(),
 		&gpuIndex)
 
